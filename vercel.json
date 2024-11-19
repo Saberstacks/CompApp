@@ -1,11 +1,12 @@
 {
+  "version": 2,
   "builds": [
     {
-      "src": "CompApp/**/*",
-      "use": "@vercel/static"
+      "src": "package.json",
+      "use": "@vercel/next"
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "CompApp/$1" }
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
