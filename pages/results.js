@@ -1,3 +1,39 @@
+// Location: pages/results.js
+
+// ... (existing code)
+
+useEffect(() => {
+  if (keyword && location) {
+    setLoading(true);
+    fetch(
+      `/api/search?keyword=${encodeURIComponent(
+        keyword
+      )}&location=${encodeURIComponent(location)}`
+    )
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.message && !result.mapPackResults && !result.organicResults) {
+          setMessage(result.message);
+          setData({ mapPackResults: [], organicResults: [] });
+        } else {
+          setData(result);
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        setMessage('An error occurred while fetching data.');
+        console.error('Fetch Error:', error);
+        setLoading(false);
+      });
+  }
+}, [keyword, location]);
+
+// ... (rest of the code)
+
+
+
+
+
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import MessageBox from '../components/MessageBox';
