@@ -4,25 +4,42 @@ export default function ResultRow({ data, type }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`result-row ${expanded ? 'expanded' : ''}`} onClick={() => setExpanded(!expanded)}>
+    <div
+      className={`result-row ${expanded ? 'expanded' : ''}`}
+      onClick={() => setExpanded(!expanded)}
+    >
       <div className="row-header">
-        <span>{data.position}. {data.name || data.title}</span>
+        <span>
+          {data.position}. {data.name || data.title}
+        </span>
         <span className="arrow">{expanded ? '▲' : '▼'}</span>
       </div>
       {expanded && (
         <div className="row-details">
           {type === 'map' && (
             <>
-              <p><strong>Address:</strong> {data.address}</p>
-              <p><strong>Ratings:</strong> {data.ratings}</p>
-              <p><strong>Reviews:</strong> {data.reviews}</p>
+              <p>
+                <strong>Address:</strong> {data.address}
+              </p>
+              <p>
+                <strong>Ratings:</strong> {data.ratings}
+              </p>
+              <p>
+                <strong>Reviews:</strong> {data.reviews}
+              </p>
             </>
           )}
           {type === 'organic' && (
             <>
-              <p><strong>URL:</strong> {data.url}</p>
-              <p><strong>Snippet:</strong> {data.snippet}</p>
-              <p><strong>Title:</strong> {data.title}</p>
+              <p>
+                <strong>URL:</strong> {data.url}
+              </p>
+              <p>
+                <strong>Snippet:</strong> {data.snippet}
+              </p>
+              <p>
+                <strong>Title:</strong> {data.title}
+              </p>
             </>
           )}
         </div>
