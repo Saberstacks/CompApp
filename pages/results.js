@@ -1,39 +1,5 @@
 // Location: pages/results.js
 
-// ... (existing code)
-
-useEffect(() => {
-  if (keyword && location) {
-    setLoading(true);
-    fetch(
-      `/api/search?keyword=${encodeURIComponent(
-        keyword
-      )}&location=${encodeURIComponent(location)}`
-    )
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.message && !result.mapPackResults && !result.organicResults) {
-          setMessage(result.message);
-          setData({ mapPackResults: [], organicResults: [] });
-        } else {
-          setData(result);
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        setMessage('An error occurred while fetching data.');
-        console.error('Fetch Error:', error);
-        setLoading(false);
-      });
-  }
-}, [keyword, location]);
-
-// ... (rest of the code)
-
-
-
-
-
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import MessageBox from '../components/MessageBox';
@@ -41,14 +7,21 @@ import ResultRow from '../components/ResultRow';
 
 export default function Results() {
   const router = useRouter();
-  const { keyword, location } = router.query;
+  const [keyword, setKeyword] = useState('');
+  const [location, setLocation] = useState('');
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Initialize as true
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    if (!router.isReady) return; // Wait until router is ready
+
+    const { keyword, location } = router.query;
+
     if (keyword && location) {
-      setLoading(true);
+      setKeyword(keyword);
+      setLocation(location);
+
       fetch(
         `/api/search?keyword=${encodeURIComponent(
           keyword
@@ -56,18 +29,24 @@ export default function Results() {
       )
         .then((res) => res.json())
         .then((result) => {
-          setData(result);
-          setLoading(false);
-          if (result.message) {
+          if (result.message && !result.mapPackResults && !result.organicResults) {
             setMessage(result.message);
+            setData({ mapPackResults: [], organicResults: [] });
+          } else {
+            setData(result);
           }
+          setLoading(false);
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error('Fetch Error:', error);
           setMessage('An error occurred while fetching data.');
           setLoading(false);
         });
+    } else {
+      setMessage('Keyword and location are required.');
+      setLoading(false);
     }
-  }, [keyword, location]);
+  }, [router.isReady, router.query]);
 
   if (loading) {
     return (
