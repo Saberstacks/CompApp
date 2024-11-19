@@ -1,4 +1,8 @@
 // Location: pages/api/search.js
+ const data = response.data;
+    console.log('API Response:', data); // Add this line for logging
+
+    let message = '';
 
 import axios from 'axios';
 
