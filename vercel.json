@@ -1,0 +1,11 @@
+{
+  "builds": [
+    {
+      "src": "CompApp/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "CompApp/$1" }
+  ]
+}
