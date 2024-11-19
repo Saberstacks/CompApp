@@ -1,3 +1,5 @@
+// Location: pages/index.js
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -12,7 +14,9 @@ export default function Home() {
       setError('Please enter both keyword and location.');
       return;
     }
-    router.push(`/results?keyword=${encodeURIComponent(keyword)}&location=${encodeURIComponent(location)}`);
+    router.push(
+      `/results?keyword=${encodeURIComponent(keyword)}&location=${encodeURIComponent(location)}`
+    );
   };
 
   return (
