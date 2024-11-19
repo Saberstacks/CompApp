@@ -13,7 +13,11 @@ export default function Results() {
   useEffect(() => {
     if (keyword && location) {
       setLoading(true);
-      fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&location=${encodeURIComponent(location)}`)
+      fetch(
+        `/api/search?keyword=${encodeURIComponent(
+          keyword
+        )}&location=${encodeURIComponent(location)}`
+      )
         .then((res) => res.json())
         .then((result) => {
           setData(result);
@@ -49,8 +53,12 @@ export default function Results() {
             animation: spin 1s linear infinite;
           }
           @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
       </div>
