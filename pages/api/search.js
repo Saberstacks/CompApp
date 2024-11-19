@@ -1,10 +1,12 @@
+// Location: pages/api/search.js
+
 import axios from 'axios';
 
 export default async function handler(req, res) {
   const { keyword, location } = req.query;
 
   try {
-    const response = await axios.get('http://api.serpstack.com/search', {
+    const response = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
@@ -25,6 +27,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ mapPackResults, organicResults, message });
   } catch (error) {
+    console.error('API Error:', error.response?.data || error.message);
     res.status(500).json({ message: 'API limit reached or an error occurred.' });
   }
 }
