@@ -1,8 +1,4 @@
 // Location: pages/api/search.js
- const data = response.data;
-    console.log('API Response:', data); // Add this line for logging
-
-    let message = '';
 
 import axios from 'axios';
 
@@ -20,14 +16,20 @@ export default async function handler(req, res) {
     });
 
     const data = response.data;
-    let message = '';
+    console.log('API Response:', data); // For debugging
 
-    if (!data.local_results || data.local_results.length === 0) {
-      message = 'Insufficient map pack results.';
+    if (data.error) {
+      console.error('Serpstack API Error:', data.error);
+      return res.status(500).json({ message: data.error.info });
     }
 
     const mapPackResults = data.local_results || [];
     const organicResults = data.organic_results ? data.organic_results.slice(0, 5) : [];
+
+    let message = '';
+    if (mapPackResults.length === 0) {
+      message = 'Insufficient map pack results.';
+    }
 
     res.status(200).json({ mapPackResults, organicResults, message });
   } catch (error) {
