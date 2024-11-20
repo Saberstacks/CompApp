@@ -5,55 +5,39 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
-  // Prepare different location query formats
-  const locationQueries = [
-    `${city}, ${state}, USA`, // First attempt: City, State, USA
-    `${city}, ${state}`,      // Second attempt: City, State
-    `${city}`,                // Third attempt: City only
-  ];
-
-  let locationId = null;
+  // Combine city and state into location query
+  const locationQuery = `${city}, ${state}`;
 
   try {
-    // Attempt to find the location ID using different query formats
-    for (const locationName of locationQueries) {
-      const locationResponse = await axios.get('https://api.serpstack.com/locations', {
-        params: {
-          access_key: process.env.SERPSTACK_API_KEY,
-          query: locationName,
-        },
-      });
+    // Fetch the canonical location name from Serpstack Location API
+    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
+      params: {
+        access_key: process.env.SERPSTACK_API_KEY,
+        query: locationQuery,
+      },
+    });
 
-      const locations = locationResponse.data;
+    const locations = locationResponse.data;
 
-      if (Array.isArray(locations) && locations.length > 0) {
-        // Find the location matching the provided state
-        const matchingLocation = locations.find((loc) =>
-          loc.name.toLowerCase().includes(city.toLowerCase()) &&
-          loc.name.toLowerCase().includes(state.toLowerCase())
-        );
-
-        if (matchingLocation) {
-          locationId = matchingLocation.loc_id;
-          console.log(`Location ID found for "${locationName}": ${locationId}`);
-          break;
-        }
-      }
+    if (!Array.isArray(locations) || locations.length === 0) {
+      console.error('Location not found:', locationQuery);
+      return res.status(400).json({ message: 'Invalid location specified. Please check the city and state names.' });
     }
 
-    if (!locationId) {
-      console.error('Location ID not found for:', `${city}, ${state}`);
-      return res.status(400).json({
-        message: `Invalid location specified. Please check the city and state names.`,
-      });
+    // Use the canonical_name as the location parameter
+    const canonicalLocation = locations[0].canonical_name;
+
+    if (!canonicalLocation) {
+      console.error('Canonical location name not found for:', locationQuery);
+      return res.status(400).json({ message: 'Invalid location specified. Please check the city and state names.' });
     }
 
-    // Use the loc_id in the search request
+    // Use the canonical location in the search request
     const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        loc_id: locationId,
+        location: canonicalLocation,
         type: 'web',
       },
     });
