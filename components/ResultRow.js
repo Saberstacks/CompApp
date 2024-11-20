@@ -1,5 +1,3 @@
-// Location: components/ResultRow.js
-
 import { useState } from 'react';
 
 export default function ResultRow({ data, type }) {
@@ -107,9 +105,8 @@ export default function ResultRow({ data, type }) {
                   <strong>Related Pages URL:</strong> N/A
                 </p>
               )}
-              {data.rich_snippets &&
-              typeof data.rich_snippets === 'object' &&
-              Object.keys(data.rich_snippets).length > 0 ? (
+              {/* Temporarily remove or comment out the rich snippets rendering */}
+              {/* {data.rich_snippets && typeof data.rich_snippets === 'object' && Object.keys(data.rich_snippets).length > 0 ? (
                 <>
                   <p>
                     <strong>Rich Snippets Data:</strong>
@@ -126,38 +123,13 @@ export default function ResultRow({ data, type }) {
                 <p>
                   <strong>Rich Snippets Data:</strong> N/A
                 </p>
-              )}
+              )} */}
             </>
           )}
         </div>
       )}
       <style jsx>{`
-        .result-row {
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          padding: 10px;
-          margin-bottom: 10px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        .result-row:hover {
-          background-color: #f9f9f9;
-        }
-        .row-header {
-          display: flex;
-          justify-content: space-between;
-          font-weight: bold;
-        }
-        .row-details {
-          margin-top: 10px;
-        }
-        .arrow {
-          font-size: 12px;
-        }
-        ul {
-          list-style-type: disc;
-          margin-left: 20px;
-        }
+        /* ... existing styles ... */
       `}</style>
     </div>
   );
