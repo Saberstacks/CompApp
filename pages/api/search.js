@@ -35,12 +35,12 @@ export default async function handler(req, res) {
       }
 
       return {
-        rank_in_map_pack: item.position || '',
-        business_name: item.title || '',
-        address: item.address || '',
-        average_rating: item.rating || '',
-        total_reviews: item.reviews || '',
-        business_type: business_type || '',
+        rank_in_map_pack: item.position || 'N/A',
+        business_name: item.title || 'N/A',
+        address: item.address || 'N/A',
+        average_rating: item.rating || 'N/A',
+        total_reviews: item.reviews || 'N/A',
+        business_type: business_type || 'N/A',
         coordinates: item.coordinates || {},
         additional_info,
       };
@@ -49,18 +49,31 @@ export default async function handler(req, res) {
     // Organic Results
     const organicResults = (data.organic_results || [])
       .slice(0, 5)
-      .map((item) => ({
-        rank_in_organic: item.position || '',
-        page_title: item.title || '',
-        page_description: item.snippet || '',
-        url: item.url || '',
-        domain:
-          item.displayed_url ||
-          (item.url ? new URL(item.url).hostname : ''),
-        cached_url: item.cached_page_url || '',
-        related_pages_url: item.related_pages_url || '',
-        rich_snippets: item.rich_snippet || {},
-      }));
+      .map((item) => {
+        let domain = '';
+        if (item.displayed_url) {
+          domain = item.displayed_url;
+        } else if (item.url) {
+          try {
+            domain = new URL(item.url).hostname;
+          } catch (error) {
+            domain = 'N/A';
+          }
+        } else {
+          domain = 'N/A';
+        }
+
+        return {
+          rank_in_organic: item.position || 'N/A',
+          page_title: item.title || 'N/A',
+          page_description: item.snippet || 'N/A',
+          url: item.url || '',
+          domain: domain,
+          cached_url: item.cached_page_url || '',
+          related_pages_url: item.related_pages_url || '',
+          rich_snippets: item.rich_snippet || {},
+        };
+      });
 
     // Miscellaneous
     const related_searches = data.related_searches || [];
