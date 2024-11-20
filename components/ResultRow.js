@@ -26,22 +26,22 @@ export default function ResultRow({ data, type }) {
           {type === 'map' && (
             <>
               <p>
-                <strong>Business Name:</strong> {data.business_name}
+                <strong>Business Name:</strong> {data.business_name || 'N/A'}
               </p>
               <p>
-                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack}
+                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack || 'N/A'}
               </p>
               <p>
-                <strong>Address:</strong> {data.address}
+                <strong>Address:</strong> {data.address || 'N/A'}
               </p>
               <p>
-                <strong>Average Rating:</strong> {data.average_rating}
+                <strong>Average Rating:</strong> {data.average_rating || 'N/A'}
               </p>
               <p>
-                <strong>Total Reviews:</strong> {data.total_reviews}
+                <strong>Total Reviews:</strong> {data.total_reviews || 'N/A'}
               </p>
               <p>
-                <strong>Business Type:</strong> {data.business_type}
+                <strong>Business Type:</strong> {data.business_type || 'N/A'}
               </p>
               {data.coordinates &&
                 data.coordinates.latitude != null &&
@@ -60,72 +60,104 @@ export default function ResultRow({ data, type }) {
           )}
           {type === 'organic' && (
             <>
-              <p>
-                <strong>Page Title:</strong> {data.page_title}
-              </p>
-              <p>
-                <strong>Rank in Organic Results:</strong> {data.rank_in_organic}
-              </p>
-              <p>
-                <strong>Page Description:</strong> {data.page_description}
-              </p>
-              {data.url ? (
-                <p>
-                  <strong>URL:</strong>{' '}
-                  <a href={data.url} target="_blank" rel="noopener noreferrer">
-                    {data.url}
-                  </a>
-                </p>
-              ) : (
-                <p>
-                  <strong>URL:</strong> N/A
-                </p>
-              )}
-              {data.domain && data.domain !== 'N/A' ? (
-                <p>
-                  <strong>Domain:</strong> {data.domain}
-                </p>
-              ) : (
-                <p>
-                  <strong>Domain:</strong> N/A
-                </p>
-              )}
-              {data.cached_url ? (
-                <p>
-                  <strong>Cached URL:</strong>{' '}
-                  <a href={data.cached_url} target="_blank" rel="noopener noreferrer">
-                    {data.cached_url}
-                  </a>
-                </p>
-              ) : null}
-              {data.related_pages_url ? (
-                <p>
-                  <strong>Related Pages URL:</strong>{' '}
-                  <a href={data.related_pages_url} target="_blank" rel="noopener noreferrer">
-                    {data.related_pages_url}
-                  </a>
-                </p>
-              ) : null}
-              {data.rich_snippets &&
-              typeof data.rich_snippets === 'object' &&
-              Object.keys(data.rich_snippets).length > 0 ? (
-                <>
-                  <p>
-                    <strong>Rich Snippets Data:</strong>
-                  </p>
-                  <ul>
-                    {Object.entries(data.rich_snippets).map(([key, value], index) => (
-                      <li key={index}>
-                        {key}: {JSON.stringify(value)}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <p>
-                  <strong>Rich Snippets Data:</strong> N/A
-                </p>
-              )}
+              {(() => {
+                try {
+                  return (
+                    <>
+                      <p>
+                        <strong>Page Title:</strong> {data.page_title || 'N/A'}
+                      </p>
+                      <p>
+                        <strong>Rank in Organic Results:</strong>{' '}
+                        {data.rank_in_organic || 'N/A'}
+                      </p>
+                      <p>
+                        <strong>Page Description:</strong>{' '}
+                        {data.page_description || 'N/A'}
+                      </p>
+                      {data.url ? (
+                        <p>
+                          <strong>URL:</strong>{' '}
+                          <a href={data.url} target="_blank" rel="noopener noreferrer">
+                            {data.url}
+                          </a>
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>URL:</strong> N/A
+                        </p>
+                      )}
+                      {data.domain && data.domain !== 'N/A' ? (
+                        <p>
+                          <strong>Domain:</strong> {data.domain}
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>Domain:</strong> N/A
+                        </p>
+                      )}
+                      {data.cached_url ? (
+                        <p>
+                          <strong>Cached URL:</strong>{' '}
+                          <a href={data.cached_url} target="_blank" rel="noopener noreferrer">
+                            {data.cached_url}
+                          </a>
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>Cached URL:</strong> N/A
+                        </p>
+                      )}
+                      {data.related_pages_url ? (
+                        <p>
+                          <strong>Related Pages URL:</strong>{' '}
+                          <a
+                            href={data.related_pages_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {data.related_pages_url}
+                          </a>
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>Related Pages URL:</strong> N/A
+                        </p>
+                      )}
+                      {data.rich_snippets &&
+                      typeof data.rich_snippets === 'object' &&
+                      Object.keys(data.rich_snippets).length > 0 ? (
+                        <>
+                          <p>
+                            <strong>Rich Snippets Data:</strong>
+                          </p>
+                          <ul>
+                            {Object.entries(data.rich_snippets).map(
+                              ([key, value], index) => (
+                                <li key={index}>
+                                  {key}: {JSON.stringify(value)}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </>
+                      ) : (
+                        <p>
+                          <strong>Rich Snippets Data:</strong> N/A
+                        </p>
+                      )}
+                    </>
+                  );
+                } catch (error) {
+                  console.error('Error rendering organic result:', error);
+                  return (
+                    <p>
+                      An error occurred while displaying this result. Please try again
+                      later.
+                    </p>
+                  );
+                }
+              })()}
             </>
           )}
         </div>
