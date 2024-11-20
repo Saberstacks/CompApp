@@ -31,9 +31,9 @@ export default function Results() {
         const data = await res.json();
 
         if (res.ok) {
-          setMapPackResults(data.mapPackResults);
-          setOrganicResults(data.organicResults);
-          setRelatedSearches(data.related_searches);
+          setMapPackResults(Array.isArray(data.mapPackResults) ? data.mapPackResults : []);
+          setOrganicResults(Array.isArray(data.organicResults) ? data.organicResults : []);
+          setRelatedSearches(data.related_searches || []);
           setAdsNoted(data.ads_noted);
           setVideosNoted(data.videos_noted);
           setMessage(data.message);
@@ -63,15 +63,29 @@ export default function Results() {
     <ErrorBoundary>
       <div className="results-container">
         {message && <MessageBox type="error" message={message} />}
-        <h1>Search Results for "{keyword}" in "{location}"</h1>
-        <h2>Map Pack Results</h2>
-        {mapPackResults.map((result, index) => (
-          <ResultRow key={index} data={result} type="map" />
-        ))}
-        <h2>Organic Results</h2>
-        {organicResults.map((result, index) => (
-          <ResultRow key={index} data={result} type="organic" />
-        ))}
+        <h1>
+          Search Results for "{keyword}" in "{location}"
+        </h1>
+        {mapPackResults.length > 0 && (
+          <>
+            <h2>Map Pack Results</h2>
+            {mapPackResults.map((result, index) =>
+              result ? (
+                <ResultRow key={index} data={result} type="map" />
+              ) : null
+            )}
+          </>
+        )}
+        {organicResults.length > 0 && (
+          <>
+            <h2>Organic Results</h2>
+            {organicResults.map((result, index) =>
+              result ? (
+                <ResultRow key={index} data={result} type="organic" />
+              ) : null
+            )}
+          </>
+        )}
         <style jsx>{`
           .results-container {
             padding: 20px;
