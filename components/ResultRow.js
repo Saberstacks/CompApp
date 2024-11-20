@@ -107,7 +107,7 @@ export default function ResultRow({ data, type }) {
                 </p>
               ) : null}
               {data.rich_snippets &&
-                data.rich_snippets &&
+                typeof data.rich_snippets === 'object' &&
                 Object.keys(data.rich_snippets).length > 0 ? (
                   <p>
                     <strong>Rich Snippets Data:</strong>{' '}
