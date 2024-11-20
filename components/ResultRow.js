@@ -5,10 +5,14 @@ import { useState } from 'react';
 export default function ResultRow({ data, type }) {
   const [expanded, setExpanded] = useState(false);
 
+  const handleToggle = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <div
       className={`result-row ${expanded ? 'expanded' : ''}`}
-      onClick={() => setExpanded(!expanded)}
+      onClick={handleToggle}
     >
       <div className="row-header">
         <span>
@@ -22,26 +26,26 @@ export default function ResultRow({ data, type }) {
           {type === 'map' && (
             <>
               <p>
-                <strong>Business Name:</strong> {data.business_name || 'N/A'}
+                <strong>Business Name:</strong> {data.business_name}
               </p>
               <p>
-                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack || 'N/A'}
+                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack}
               </p>
               <p>
-                <strong>Address:</strong> {data.address || 'N/A'}
+                <strong>Address:</strong> {data.address}
               </p>
               <p>
-                <strong>Average Rating:</strong> {data.average_rating || 'N/A'}
+                <strong>Average Rating:</strong> {data.average_rating}
               </p>
               <p>
-                <strong>Total Reviews:</strong> {data.total_reviews || 'N/A'}
+                <strong>Total Reviews:</strong> {data.total_reviews}
               </p>
               <p>
-                <strong>Business Type:</strong> {data.business_type || 'N/A'}
+                <strong>Business Type:</strong> {data.business_type}
               </p>
               {data.coordinates &&
-                data.coordinates.latitude &&
-                data.coordinates.longitude && (
+                data.coordinates.latitude != null &&
+                data.coordinates.longitude != null && (
                   <p>
                     <strong>Coordinates:</strong> Latitude {data.coordinates.latitude}, Longitude{' '}
                     {data.coordinates.longitude}
@@ -57,47 +61,61 @@ export default function ResultRow({ data, type }) {
           {type === 'organic' && (
             <>
               <p>
-                <strong>Page Title:</strong> {data.page_title || 'N/A'}
+                <strong>Page Title:</strong> {data.page_title}
               </p>
               <p>
-                <strong>Rank in Organic Results:</strong> {data.rank_in_organic || 'N/A'}
+                <strong>Rank in Organic Results:</strong> {data.rank_in_organic}
               </p>
               <p>
-                <strong>Page Description:</strong> {data.page_description || 'N/A'}
+                <strong>Page Description:</strong> {data.page_description}
               </p>
-              {data.url && (
+              {data.url ? (
                 <p>
                   <strong>URL:</strong>{' '}
                   <a href={data.url} target="_blank" rel="noopener noreferrer">
                     {data.url}
                   </a>
                 </p>
+              ) : (
+                <p>
+                  <strong>URL:</strong> N/A
+                </p>
               )}
-              {data.domain && (
+              {data.domain && data.domain !== 'N/A' ? (
                 <p>
                   <strong>Domain:</strong> {data.domain}
                 </p>
+              ) : (
+                <p>
+                  <strong>Domain:</strong> N/A
+                </p>
               )}
-              {data.cached_url && (
+              {data.cached_url ? (
                 <p>
                   <strong>Cached URL:</strong>{' '}
                   <a href={data.cached_url} target="_blank" rel="noopener noreferrer">
                     {data.cached_url}
                   </a>
                 </p>
-              )}
-              {data.related_pages_url && (
+              ) : null}
+              {data.related_pages_url ? (
                 <p>
                   <strong>Related Pages URL:</strong>{' '}
                   <a href={data.related_pages_url} target="_blank" rel="noopener noreferrer">
                     {data.related_pages_url}
                   </a>
                 </p>
-              )}
+              ) : null}
               {data.rich_snippets &&
-                Object.keys(data.rich_snippets).length > 0 && (
+                typeof data.rich_snippets === 'object' &&
+                Object.keys(data.rich_snippets).length > 0 ? (
                   <p>
-                    <strong>Rich Snippets Data:</strong> {JSON.stringify(data.rich_snippets)}
+                    <strong>Rich Snippets Data:</strong>{' '}
+                    {JSON.stringify(data.rich_snippets, null, 2)}
+                  </p>
+                ) : (
+                  <p>
+                    <strong>Rich Snippets Data:</strong> N/A
                   </p>
                 )}
             </>
