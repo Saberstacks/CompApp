@@ -6,19 +6,43 @@ export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
   // Combine city and state into location
-  const location = `${city},${state}`;
+  const locationName = `${city}, ${state}`;
 
   try {
-    const response = await axios.get('https://api.serpstack.com/search', {
+    // Fetch the location ID (loc_id) from Serpstack Location API
+    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
+      params: {
+        access_key: process.env.SERPSTACK_API_KEY,
+        query: locationName,
+      },
+    });
+
+    const locations = locationResponse.data;
+
+    if (!Array.isArray(locations) || locations.length === 0) {
+      console.error('Location not found:', locationName);
+      return res.status(400).json({ message: 'Invalid location specified.' });
+    }
+
+    // Assuming the first result is the most relevant
+    const locationId = locations[0].loc_id;
+
+    if (!locationId) {
+      console.error('Location ID not found for:', locationName);
+      return res.status(400).json({ message: 'Invalid location specified.' });
+    }
+
+    // Use the loc_id in the search request
+    const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        location: location,
+        loc_id: locationId,
         type: 'web',
       },
     });
 
-    const data = response.data;
+    const data = searchResponse.data;
 
     if (data.error) {
       console.error('Serpstack API Error:', data.error);
@@ -38,12 +62,10 @@ export default async function handler(req, res) {
           } else if (typeof item.extensions === 'string') {
             business_type = item.extensions || 'N/A';
           } else if (item.extensions && typeof item.extensions === 'object') {
-            // Convert object values to array
             const extensionsArray = Object.values(item.extensions);
             business_type = extensionsArray[0] || 'N/A';
             additional_info = extensionsArray.slice(1);
           } else {
-            // item.extensions is undefined or null
             business_type = 'N/A';
             additional_info = [];
           }
@@ -83,7 +105,7 @@ export default async function handler(req, res) {
             pageTitle = JSON.stringify(item.title);
           }
 
-          // Ensure item.snippet is a string (attempting to get meta description)
+          // Ensure item.snippet is a string
           let pageDescription = 'N/A';
           if (typeof item.snippet === 'string') {
             pageDescription = item.snippet;
@@ -102,10 +124,8 @@ export default async function handler(req, res) {
             page_description: pageDescription,
             url: typeof item.url === 'string' ? item.url : '',
             domain: domain,
-            cached_url:
-              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
-            related_pages_url:
-              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
             rich_snippets: item.rich_snippet || {},
           };
         })
