@@ -3,18 +3,16 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
-  const { keyword, city, state } = req.query;
-
-  // Combine city and state into location
-  const location = `${city}, ${state}, United States`;
+  const { keyword } = req.query;
 
   try {
-    // Use the location directly in the search request
+    // Use 'us' for United States country code
     const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        location: location,
+        gl: 'us', // Country code for the United States
+        hl: 'en', // Language code for English
         type: 'web',
       },
     });
