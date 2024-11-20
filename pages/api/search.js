@@ -5,54 +5,16 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
-  // Combine city and state into location query
-  const locationQuery = `${city}, ${state}`;
+  // Combine city and state into location
+  const location = `${city}, ${state}, United States`;
 
   try {
-    // Fetch the canonical location name from Serpstack Locations API
-    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
-      params: {
-        access_key: process.env.SERPSTACK_API_KEY,
-        query: locationQuery,
-      },
-    });
-
-    const locations = locationResponse.data;
-
-    // Debugging: Log the Locations API response
-    console.log('Locations API response:', locations);
-
-    if (!Array.isArray(locations) || locations.length === 0) {
-      console.error('Location not found:', locationQuery);
-      return res.status(400).json({
-        message: 'Invalid location specified. Please check the city and state names.',
-      });
-    }
-
-    // Find the location that matches both city and state
-    const matchingLocation = locations.find((loc) =>
-      loc.canonical_name.toLowerCase().includes(city.toLowerCase()) &&
-      loc.canonical_name.toLowerCase().includes(state.toLowerCase())
-    );
-
-    if (!matchingLocation) {
-      console.error('Matching location not found for:', locationQuery);
-      return res.status(400).json({
-        message: 'Invalid location specified. Please check the city and state names.',
-      });
-    }
-
-    const canonicalLocation = matchingLocation.canonical_name;
-
-    // Debugging: Log the canonical location name
-    console.log('Using canonical location:', canonicalLocation);
-
-    // Use the canonical location in the search request
+    // Use the location directly in the search request
     const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        location: canonicalLocation,
+        location: location,
         type: 'web',
       },
     });
@@ -139,8 +101,10 @@ export default async function handler(req, res) {
             page_description: pageDescription,
             url: typeof item.url === 'string' ? item.url : '',
             domain: domain,
-            cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
-            related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            cached_url:
+              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url:
+              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
             rich_snippets: item.rich_snippet || {},
           };
         })
