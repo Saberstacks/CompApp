@@ -39,13 +39,13 @@ export default function ResultRow({ data, type }) {
               <p>
                 <strong>Business Type:</strong> {data.business_type}
               </p>
-              {data.coordinates && (
+              {data.coordinates && data.coordinates.latitude && data.coordinates.longitude && (
                 <p>
                   <strong>Coordinates:</strong> Latitude {data.coordinates.latitude}, Longitude{' '}
                   {data.coordinates.longitude}
                 </p>
               )}
-              {data.additional_info.length > 0 && (
+              {data.additional_info && data.additional_info.length > 0 && (
                 <p>
                   <strong>Additional Info:</strong> {data.additional_info.join(', ')}
                 </p>
