@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   try {
     // Fetch the canonical location name from Serpstack Locations API
-    const locationResponse = await axios.get('http://api.serpstack.com/locations', {
+    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: locationQuery,
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     // Find the location that matches both city and state
     const matchingLocation = locations.find((loc) =>
-      loc.name.toLowerCase().includes(city.toLowerCase()) &&
+      loc.canonical_name.toLowerCase().includes(city.toLowerCase()) &&
       loc.canonical_name.toLowerCase().includes(state.toLowerCase())
     );
 
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     console.log('Using canonical location:', canonicalLocation);
 
     // Use the canonical location in the search request
-    const searchResponse = await axios.get('http://api.serpstack.com/search', {
+    const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
@@ -139,10 +139,8 @@ export default async function handler(req, res) {
             page_description: pageDescription,
             url: typeof item.url === 'string' ? item.url : '',
             domain: domain,
-            cached_url:
-              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
-            related_pages_url:
-              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
             rich_snippets: item.rich_snippet || {},
           };
         })
