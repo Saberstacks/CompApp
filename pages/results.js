@@ -8,7 +8,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 
 export default function Results() {
   const router = useRouter();
-  const { keyword, location } = router.query;
+  const { keyword, city, state } = router.query;
 
   const [mapPackResults, setMapPackResults] = useState([]);
   const [organicResults, setOrganicResults] = useState([]);
@@ -19,14 +19,14 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!keyword || !location) return;
+    if (!keyword || !city || !state) return;
 
     const fetchData = async () => {
       try {
         const res = await fetch(
           `/api/search?keyword=${encodeURIComponent(
             keyword
-          )}&location=${encodeURIComponent(location)}`
+          )}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
         );
         const data = await res.json();
 
@@ -49,7 +49,7 @@ export default function Results() {
     };
 
     fetchData();
-  }, [keyword, location]);
+  }, [keyword, city, state]);
 
   if (loading) {
     return (
@@ -64,7 +64,7 @@ export default function Results() {
       <div className="results-container">
         {message && <MessageBox type="error" message={message} />}
         <h1>
-          Search Results for "{keyword}" in "{location}"
+          Search Results for "{keyword}" in "{city}, {state}"
         </h1>
         {mapPackResults.length > 0 && (
           <>
