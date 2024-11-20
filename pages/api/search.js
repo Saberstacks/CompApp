@@ -3,7 +3,10 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
-  const { keyword, location } = req.query;
+  const { keyword, city, state } = req.query;
+
+  // Combine city and state into location
+  const location = `${city},${state}`;
 
   try {
     const response = await axios.get('https://api.serpstack.com/search', {
@@ -80,12 +83,17 @@ export default async function handler(req, res) {
             pageTitle = JSON.stringify(item.title);
           }
 
-          // Ensure item.snippet is a string
+          // Ensure item.snippet is a string (attempting to get meta description)
           let pageDescription = 'N/A';
           if (typeof item.snippet === 'string') {
             pageDescription = item.snippet;
           } else if (item.snippet && typeof item.snippet === 'object') {
             pageDescription = JSON.stringify(item.snippet);
+          }
+
+          // Attempt to get meta description from 'meta_tags' if available
+          if (item.meta_tags && item.meta_tags.description) {
+            pageDescription = item.meta_tags.description;
           }
 
           return {
