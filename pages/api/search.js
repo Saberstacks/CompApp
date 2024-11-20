@@ -5,16 +5,43 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
-  // Combine city and state into location
-  const location = `${city}, ${state}, United States`;
+  // Prepare location query without commas
+  const locationQuery = `${city} ${state}`;
 
   try {
-    // Use the location directly in the search request
-    const searchResponse = await axios.get('https://api.serpstack.com/search', {
+    // Fetch the canonical location name from Serpstack Locations API
+    const locationResponse = await axios.get('http://api.serpstack.com/locations', {
+      params: {
+        access_key: process.env.SERPSTACK_API_KEY,
+        query: locationQuery,
+      },
+    });
+
+    const locations = locationResponse.data;
+
+    if (!Array.isArray(locations) || locations.length === 0) {
+      console.error('Location not found:', locationQuery);
+      return res.status(400).json({
+        message: 'Invalid location specified. Please check the city and state names.',
+      });
+    }
+
+    // Use the canonical_name as the location parameter
+    const canonicalLocation = locations[0].canonical_name;
+
+    if (!canonicalLocation) {
+      console.error('Canonical location name not found for:', locationQuery);
+      return res.status(400).json({
+        message: 'Invalid location specified. Please check the city and state names.',
+      });
+    }
+
+    // Use the canonical location in the search request
+    const searchResponse = await axios.get('http://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        location: location,
+        location: canonicalLocation,
         type: 'web',
       },
     });
