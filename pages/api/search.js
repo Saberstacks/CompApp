@@ -23,28 +23,46 @@ export default async function handler(req, res) {
     }
 
     // Map Pack Results
-    const mapPackResults = (data.local_results || []).map((item) => ({
-      rank_in_map_pack: item.position,
-      business_name: item.title,
-      address: item.address,
-      average_rating: item.rating,
-      total_reviews: item.reviews,
-      business_type: item.extensions ? item.extensions[0] : '',
-      coordinates: item.coordinates || {},
-      additional_info: item.extensions ? item.extensions.slice(1) : [],
-    }));
+    const mapPackResults = (data.local_results || []).map((item) => {
+      let business_type = '';
+      let additional_info = [];
+
+      if (Array.isArray(item.extensions)) {
+        business_type = item.extensions[0];
+        additional_info = item.extensions.slice(1);
+      } else if (typeof item.extensions === 'string') {
+        business_type = item.extensions;
+        additional_info = [];
+      } else {
+        business_type = '';
+        additional_info = [];
+      }
+
+      return {
+        rank_in_map_pack: item.position,
+        business_name: item.title,
+        address: item.address,
+        average_rating: item.rating,
+        total_reviews: item.reviews,
+        business_type,
+        coordinates: item.coordinates || {},
+        additional_info,
+      };
+    });
 
     // Organic Results
-    const organicResults = (data.organic_results || []).slice(0, 5).map((item) => ({
-      rank_in_organic: item.position,
-      page_title: item.title,
-      page_description: item.snippet,
-      url: item.url,
-      domain: item.displayed_url || new URL(item.url).hostname,
-      cached_url: item.cached_page_url || '',
-      related_pages_url: item.related_pages_url || '',
-      rich_snippets: item.rich_snippet || {},
-    }));
+    const organicResults = (data.organic_results || [])
+      .slice(0, 5)
+      .map((item) => ({
+        rank_in_organic: item.position,
+        page_title: item.title,
+        page_description: item.snippet,
+        url: item.url,
+        domain: item.displayed_url || new URL(item.url).hostname,
+        cached_url: item.cached_page_url || '',
+        related_pages_url: item.related_pages_url || '',
+        rich_snippets: item.rich_snippet || {},
+      }));
 
     // Miscellaneous
     const related_searches = data.related_searches || [];
