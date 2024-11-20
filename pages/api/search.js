@@ -5,45 +5,16 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
-  // Combine city and state into location query
-  const locationQuery = `${city}, ${state}`;
+  // Combine city and state into location
+  const location = `${city}, ${state}, United States`;
 
   try {
-    // Fetch the canonical location name from Serpstack Location API
-    console.log(`Fetching location for query: "${locationQuery}"`);
-
-    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
-      params: {
-        access_key: process.env.SERPSTACK_API_KEY,
-        query: locationQuery,
-      },
-    });
-
-    console.log('Location API response:', locationResponse.data);
-
-    const locations = locationResponse.data;
-
-    if (!Array.isArray(locations) || locations.length === 0) {
-      console.error('Location not found:', locationQuery);
-      return res.status(400).json({ message: 'Invalid location specified. Please check the city and state names.' });
-    }
-
-    // Use the canonical_name as the location parameter
-    const canonicalLocation = locations[0].canonical_name;
-
-    if (!canonicalLocation) {
-      console.error('Canonical location name not found for:', locationQuery);
-      return res.status(400).json({ message: 'Invalid location specified. Please check the city and state names.' });
-    }
-
-    console.log(`Using canonical location: "${canonicalLocation}"`);
-
-    // Use the canonical location in the search request
+    // Use the location directly in the search request
     const searchResponse = await axios.get('https://api.serpstack.com/search', {
       params: {
         access_key: process.env.SERPSTACK_API_KEY,
         query: keyword,
-        location: canonicalLocation,
+        location: location,
         type: 'web',
       },
     });
@@ -130,8 +101,10 @@ export default async function handler(req, res) {
             page_description: pageDescription,
             url: typeof item.url === 'string' ? item.url : '',
             domain: domain,
-            cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
-            related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            cached_url:
+              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url:
+              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
             rich_snippets: item.rich_snippet || {},
           };
         })
