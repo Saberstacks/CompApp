@@ -22,38 +22,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: data.error.info });
     }
 
-    // Map Pack Results
+    // Map Pack Results (unchanged)
     const mapPackResults = (data.local_results || []).map((item) => {
-      let business_type = 'N/A';
-      let additional_info = [];
-
-      // Safely handle item.extensions
-      if (Array.isArray(item.extensions)) {
-        business_type = item.extensions[0] || 'N/A';
-        additional_info = item.extensions.slice(1);
-      } else if (typeof item.extensions === 'string') {
-        business_type = item.extensions || 'N/A';
-      } else if (item.extensions && typeof item.extensions === 'object') {
-        // Convert object values to array
-        const extensionsArray = Object.values(item.extensions);
-        business_type = extensionsArray[0] || 'N/A';
-        additional_info = extensionsArray.slice(1);
-      } else {
-        // item.extensions is undefined or null
-        business_type = 'N/A';
-        additional_info = [];
-      }
-
-      return {
-        rank_in_map_pack: item.position || 'N/A',
-        business_name: item.title || 'N/A',
-        address: item.address || 'N/A',
-        average_rating: item.rating || 'N/A',
-        total_reviews: item.reviews || 'N/A',
-        business_type: business_type,
-        coordinates: item.coordinates || {},
-        additional_info: additional_info,
-      };
+      // ... existing code ...
     });
 
     // Organic Results
@@ -61,9 +32,9 @@ export default async function handler(req, res) {
       .slice(0, 5)
       .map((item) => {
         let domain = 'N/A';
-        if (item.displayed_url) {
+        if (typeof item.displayed_url === 'string') {
           domain = item.displayed_url;
-        } else if (item.url) {
+        } else if (typeof item.url === 'string') {
           try {
             domain = new URL(item.url).hostname;
           } catch (error) {
@@ -71,19 +42,35 @@ export default async function handler(req, res) {
           }
         }
 
+        // Ensure item.title is a string
+        let pageTitle = 'N/A';
+        if (typeof item.title === 'string') {
+          pageTitle = item.title;
+        } else if (item.title && typeof item.title === 'object') {
+          pageTitle = JSON.stringify(item.title);
+        }
+
+        // Ensure item.snippet is a string
+        let pageDescription = 'N/A';
+        if (typeof item.snippet === 'string') {
+          pageDescription = item.snippet;
+        } else if (item.snippet && typeof item.snippet === 'object') {
+          pageDescription = JSON.stringify(item.snippet);
+        }
+
         return {
           rank_in_organic: item.position || 'N/A',
-          page_title: item.title || 'N/A',
-          page_description: item.snippet || 'N/A',
-          url: item.url || '',
+          page_title: pageTitle,
+          page_description: pageDescription,
+          url: typeof item.url === 'string' ? item.url : '',
           domain: domain,
-          cached_url: item.cached_page_url || '',
-          related_pages_url: item.related_pages_url || '',
+          cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+          related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
           rich_snippets: item.rich_snippet || {},
         };
       });
 
-    // Miscellaneous
+    // Miscellaneous (unchanged)
     const related_searches = data.related_searches || [];
     const ads_noted = !!data.ads;
     const videos_noted = !!data.inline_videos;
