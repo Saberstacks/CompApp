@@ -1,70 +1,102 @@
 // Location: pages/index.js
 
-import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
+import MessageBox from '../components/MessageBox';
 
 export default function Home() {
-  const [keyword, setKeyword] = useState('');
-  const [location, setLocation] = useState('');
-  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSearch = () => {
-    if (!keyword || !location) {
-      setError('Please enter both keyword and location.');
+  const [keyword, setKeyword] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Simple validation to ensure no abbreviations are used
+    if (city.length < 3 || state.length < 3) {
+      setMessage('Please enter the full city and state names (no abbreviations).');
       return;
     }
+
+    setMessage('');
     router.push(
-      `/results?keyword=${encodeURIComponent(keyword)}&location=${encodeURIComponent(location)}`
+      `/results?keyword=${encodeURIComponent(keyword)}&city=${encodeURIComponent(
+        city
+      )}&state=${encodeURIComponent(state)}`
     );
   };
 
   return (
-    <div className="container">
-      <h1>Competitor Analysis</h1>
-      <div className="input-group">
-        <input
-          type="text"
-          placeholder="e.g., plumber near me"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="e.g., Miami, FL"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-        <button onClick={handleSearch}>Search</button>
-        {error && <p className="error">{error}</p>}
-      </div>
+    <div className="home-container">
+      <h1>Search Engine Results Page Analyzer</h1>
+      {message && <MessageBox type="error" message={message} />}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="keyword">Keyword:</label>
+          <input
+            type="text"
+            id="keyword"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            required
+            placeholder="Enter keyword"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="city">City (full name):</label>
+          <input
+            type="text"
+            id="city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            required
+            placeholder="Enter full city name (e.g., Miami)"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="state">State (full name):</label>
+          <input
+            type="text"
+            id="state"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            required
+            placeholder="Enter full state name (e.g., Florida)"
+          />
+        </div>
+        <button type="submit">Search</button>
+      </form>
       <style jsx>{`
-        .container {
-          text-align: center;
-          margin-top: 50px;
-          font-family: 'Roboto', sans-serif;
+        .home-container {
+          padding: 20px;
         }
-        .input-group {
-          margin-top: 20px;
+        h1 {
+          text-align: center;
+        }
+        form {
+          max-width: 500px;
+          margin: 0 auto;
+        }
+        .form-group {
+          margin-bottom: 15px;
+        }
+        label {
+          display: block;
+          font-weight: bold;
         }
         input {
-          margin: 5px;
-          padding: 10px;
-          width: 200px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
+          width: 100%;
+          padding: 8px;
+          margin-top: 5px;
         }
         button {
           padding: 10px 20px;
-          background-color: #4285F4;
-          color: #fff;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-        .error {
-          color: red;
-          margin-top: 10px;
+          font-size: 16px;
+          display: block;
+          margin: 0 auto;
         }
       `}</style>
     </div>
