@@ -10,11 +10,11 @@ export default function Results() {
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true); // Initialize as true
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!router.isReady) return; // Wait until router is ready
+    if (!router.isReady) return;
 
     const { keyword, location } = router.query;
 
@@ -90,6 +90,9 @@ export default function Results() {
         {message && <MessageBox message={message} />}
       </div>
 
+      {data?.ads_noted && <p>Ads Noted in Results</p>}
+      {data?.videos_noted && <p>Videos Noted in Results</p>}
+
       <h3>Map Pack Results</h3>
       {data?.mapPackResults?.length > 0 ? (
         data.mapPackResults.map((item, index) => (
@@ -108,6 +111,18 @@ export default function Results() {
         ))
       ) : (
         <p>No organic results found.</p>
+      )}
+
+      {data?.related_searches?.length > 0 && (
+        <>
+          <hr />
+          <h3>Related Searches</h3>
+          <ul>
+            {data.related_searches.map((search, index) => (
+              <li key={index}>{search.query}</li>
+            ))}
+          </ul>
+        </>
       )}
 
       <style jsx>{`
@@ -129,6 +144,10 @@ export default function Results() {
           margin: 20px 0;
           border: none;
           border-top: 1px solid #ccc;
+        }
+        ul {
+          list-style-type: disc;
+          margin-left: 20px;
         }
       `}</style>
     </div>
