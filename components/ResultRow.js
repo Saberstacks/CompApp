@@ -22,29 +22,31 @@ export default function ResultRow({ data, type }) {
           {type === 'map' && (
             <>
               <p>
-                <strong>Business Name:</strong> {data.business_name}
+                <strong>Business Name:</strong> {data.business_name || 'N/A'}
               </p>
               <p>
-                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack}
+                <strong>Rank in Map Pack:</strong> {data.rank_in_map_pack || 'N/A'}
               </p>
               <p>
-                <strong>Address:</strong> {data.address}
+                <strong>Address:</strong> {data.address || 'N/A'}
               </p>
               <p>
-                <strong>Average Rating:</strong> {data.average_rating}
+                <strong>Average Rating:</strong> {data.average_rating || 'N/A'}
               </p>
               <p>
-                <strong>Total Reviews:</strong> {data.total_reviews}
+                <strong>Total Reviews:</strong> {data.total_reviews || 'N/A'}
               </p>
               <p>
-                <strong>Business Type:</strong> {data.business_type}
+                <strong>Business Type:</strong> {data.business_type || 'N/A'}
               </p>
-              {data.coordinates && data.coordinates.latitude && data.coordinates.longitude && (
-                <p>
-                  <strong>Coordinates:</strong> Latitude {data.coordinates.latitude}, Longitude{' '}
-                  {data.coordinates.longitude}
-                </p>
-              )}
+              {data.coordinates &&
+                data.coordinates.latitude &&
+                data.coordinates.longitude && (
+                  <p>
+                    <strong>Coordinates:</strong> Latitude {data.coordinates.latitude}, Longitude{' '}
+                    {data.coordinates.longitude}
+                  </p>
+                )}
               {data.additional_info && data.additional_info.length > 0 && (
                 <p>
                   <strong>Additional Info:</strong> {data.additional_info.join(', ')}
@@ -55,23 +57,27 @@ export default function ResultRow({ data, type }) {
           {type === 'organic' && (
             <>
               <p>
-                <strong>Page Title:</strong> {data.page_title}
+                <strong>Page Title:</strong> {data.page_title || 'N/A'}
               </p>
               <p>
-                <strong>Rank in Organic Results:</strong> {data.rank_in_organic}
+                <strong>Rank in Organic Results:</strong> {data.rank_in_organic || 'N/A'}
               </p>
               <p>
-                <strong>Page Description:</strong> {data.page_description}
+                <strong>Page Description:</strong> {data.page_description || 'N/A'}
               </p>
-              <p>
-                <strong>URL:</strong>{' '}
-                <a href={data.url} target="_blank" rel="noopener noreferrer">
-                  {data.url}
-                </a>
-              </p>
-              <p>
-                <strong>Domain:</strong> {data.domain}
-              </p>
+              {data.url && (
+                <p>
+                  <strong>URL:</strong>{' '}
+                  <a href={data.url} target="_blank" rel="noopener noreferrer">
+                    {data.url}
+                  </a>
+                </p>
+              )}
+              {data.domain && (
+                <p>
+                  <strong>Domain:</strong> {data.domain}
+                </p>
+              )}
               {data.cached_url && (
                 <p>
                   <strong>Cached URL:</strong>{' '}
@@ -88,11 +94,12 @@ export default function ResultRow({ data, type }) {
                   </a>
                 </p>
               )}
-              {data.rich_snippets && Object.keys(data.rich_snippets).length > 0 && (
-                <p>
-                  <strong>Rich Snippets Data:</strong> {JSON.stringify(data.rich_snippets)}
-                </p>
-              )}
+              {data.rich_snippets &&
+                Object.keys(data.rich_snippets).length > 0 && (
+                  <p>
+                    <strong>Rich Snippets Data:</strong> {JSON.stringify(data.rich_snippets)}
+                  </p>
+                )}
             </>
           )}
         </div>
