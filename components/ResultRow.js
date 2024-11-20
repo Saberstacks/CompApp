@@ -107,17 +107,25 @@ export default function ResultRow({ data, type }) {
                 </p>
               ) : null}
               {data.rich_snippets &&
-                typeof data.rich_snippets === 'object' &&
-                Object.keys(data.rich_snippets).length > 0 ? (
+              typeof data.rich_snippets === 'object' &&
+              Object.keys(data.rich_snippets).length > 0 ? (
+                <>
                   <p>
-                    <strong>Rich Snippets Data:</strong>{' '}
-                    {JSON.stringify(data.rich_snippets, null, 2)}
+                    <strong>Rich Snippets Data:</strong>
                   </p>
-                ) : (
-                  <p>
-                    <strong>Rich Snippets Data:</strong> N/A
-                  </p>
-                )}
+                  <ul>
+                    {Object.entries(data.rich_snippets).map(([key, value], index) => (
+                      <li key={index}>
+                        {key}: {JSON.stringify(value)}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p>
+                  <strong>Rich Snippets Data:</strong> N/A
+                </p>
+              )}
             </>
           )}
         </div>
@@ -144,6 +152,10 @@ export default function ResultRow({ data, type }) {
         }
         .arrow {
           font-size: 12px;
+        }
+        ul {
+          list-style-type: disc;
+          margin-left: 20px;
         }
       `}</style>
     </div>
