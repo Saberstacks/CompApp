@@ -1,100 +1,132 @@
-// Location: pages/results.js
+// Location: pages/api/search.js
 
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import MessageBox from '../components/MessageBox';
-import ResultRow from '../components/ResultRow';
-import ErrorBoundary from '../components/ErrorBoundary';
+import axios from 'axios';
 
-export default function Results() {
-  const router = useRouter();
-  const { keyword, city, state } = router.query;
+export default async function handler(req, res) {
+  const { keyword, city, state } = req.query;
 
-  const [mapPackResults, setMapPackResults] = useState([]);
-  const [organicResults, setOrganicResults] = useState([]);
-  const [relatedSearches, setRelatedSearches] = useState([]);
-  const [adsNoted, setAdsNoted] = useState(false);
-  const [videosNoted, setVideosNoted] = useState(false);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  // Format the location as per Serpstack's expected input
+  const location = `${city},${state},United States`;
 
-  useEffect(() => {
-    if (!keyword || !city || !state) return;
+  try {
+    // Use the location directly in the search request
+    const searchResponse = await axios.get('https://api.serpstack.com/search', {
+      params: {
+        access_key: process.env.SERPSTACK_API_KEY,
+        query: keyword,
+        location: location,
+        type: 'web',
+      },
+    });
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `/api/search?keyword=${encodeURIComponent(
-            keyword
-          )}&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
-        );
-        const data = await res.json();
+    const data = searchResponse.data;
 
-        if (res.ok) {
-          setMapPackResults(Array.isArray(data.mapPackResults) ? data.mapPackResults : []);
-          setOrganicResults(Array.isArray(data.organicResults) ? data.organicResults : []);
-          setRelatedSearches(data.related_searches || []);
-          setAdsNoted(data.ads_noted);
-          setVideosNoted(data.videos_noted);
-          setMessage(data.message);
-        } else {
-          setMessage(data.message || 'An error occurred.');
-        }
-      } catch (error) {
-        console.error('Fetch Error:', error);
-        setMessage('An error occurred while fetching data.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (data.error) {
+      console.error('Serpstack API Error:', data.error);
+      return res.status(500).json({ message: data.error.info });
+    }
 
-    fetchData();
-  }, [keyword, city, state]);
+    // Map Pack Results
+    const mapPackResults = Array.isArray(data.local_results)
+      ? data.local_results.map((item) => {
+          let business_type = 'N/A';
+          let additional_info = [];
 
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <MessageBox type="info" message="Loading..." />
-      </div>
-    );
+          // Safely handle item.extensions
+          if (Array.isArray(item.extensions)) {
+            business_type = item.extensions[0] || 'N/A';
+            additional_info = item.extensions.slice(1);
+          } else if (typeof item.extensions === 'string') {
+            business_type = item.extensions || 'N/A';
+          } else if (item.extensions && typeof item.extensions === 'object') {
+            const extensionsArray = Object.values(item.extensions);
+            business_type = extensionsArray[0] || 'N/A';
+            additional_info = extensionsArray.slice(1);
+          } else {
+            business_type = 'N/A';
+            additional_info = [];
+          }
+
+          return {
+            rank_in_map_pack: item.position || 'N/A',
+            business_name: item.title || 'N/A',
+            address: item.address || 'N/A',
+            average_rating: item.rating || 'N/A',
+            total_reviews: item.reviews || 'N/A',
+            business_type: business_type,
+            coordinates: item.coordinates || {},
+            additional_info: additional_info,
+          };
+        })
+      : [];
+
+    // Organic Results
+    const organicResults = Array.isArray(data.organic_results)
+      ? data.organic_results.slice(0, 5).map((item) => {
+          let domain = 'N/A';
+          if (typeof item.displayed_url === 'string') {
+            domain = item.displayed_url;
+          } else if (typeof item.url === 'string') {
+            try {
+              domain = new URL(item.url).hostname;
+            } catch (error) {
+              domain = 'N/A';
+            }
+          }
+
+          // Ensure item.title is a string
+          let pageTitle = 'N/A';
+          if (typeof item.title === 'string') {
+            pageTitle = item.title;
+          } else if (item.title && typeof item.title === 'object') {
+            pageTitle = JSON.stringify(item.title);
+          }
+
+          // Ensure item.snippet is a string
+          let pageDescription = 'N/A';
+          if (typeof item.snippet === 'string') {
+            pageDescription = item.snippet;
+          } else if (item.snippet && typeof item.snippet === 'object') {
+            pageDescription = JSON.stringify(item.snippet);
+          }
+
+          // Attempt to get meta description from 'meta_tags' if available
+          if (item.meta_tags && item.meta_tags.description) {
+            pageDescription = item.meta_tags.description;
+          }
+
+          return {
+            rank_in_organic: item.position || 'N/A',
+            page_title: pageTitle,
+            page_description: pageDescription,
+            url: typeof item.url === 'string' ? item.url : '',
+            domain: domain,
+            cached_url:
+              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url:
+              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            rich_snippets: item.rich_snippet || {},
+          };
+        })
+      : [];
+
+    // Miscellaneous
+    const related_searches = data.related_searches || [];
+    const ads_noted = !!data.ads;
+    const videos_noted = !!data.inline_videos;
+
+    res.status(200).json({
+      mapPackResults,
+      organicResults,
+      related_searches,
+      ads_noted,
+      videos_noted,
+      message: '',
+    });
+  } catch (error) {
+    console.error('API Error:', error.response?.data || error.message);
+    res.status(500).json({
+      message: 'An error occurred while processing your request.',
+    });
   }
-
-  return (
-    <ErrorBoundary>
-      <div className="results-container">
-        {message && <MessageBox type="error" message={message} />}
-        <h1>
-          Search Results for "{keyword}" in "{city}, {state}"
-        </h1>
-        {mapPackResults.length > 0 && (
-          <>
-            <h2>Map Pack Results</h2>
-            {mapPackResults.map((result, index) =>
-              result ? (
-                <ResultRow key={index} data={result} type="map" />
-              ) : null
-            )}
-          </>
-        )}
-        {organicResults.length > 0 && (
-          <>
-            <h2>Organic Results</h2>
-            {organicResults.map((result, index) =>
-              result ? (
-                <ResultRow key={index} data={result} type="organic" />
-              ) : null
-            )}
-          </>
-        )}
-        <style jsx>{`
-          .results-container {
-            padding: 20px;
-          }
-          .loading-container {
-            padding: 20px;
-          }
-        `}</style>
-      </div>
-    </ErrorBoundary>
-  );
 }
