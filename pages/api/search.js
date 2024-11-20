@@ -5,31 +5,47 @@ import axios from 'axios';
 export default async function handler(req, res) {
   const { keyword, city, state } = req.query;
 
-  // Combine city and state into location
-  const locationName = `${city}, ${state}`;
+  // Prepare different location query formats
+  const locationQueries = [
+    `${city}, ${state}, USA`, // First attempt: City, State, USA
+    `${city}, ${state}`,      // Second attempt: City, State
+    `${city}`,                // Third attempt: City only
+  ];
+
+  let locationId = null;
 
   try {
-    // Fetch the location ID (loc_id) from Serpstack Location API
-    const locationResponse = await axios.get('https://api.serpstack.com/locations', {
-      params: {
-        access_key: process.env.SERPSTACK_API_KEY,
-        query: locationName,
-      },
-    });
+    // Attempt to find the location ID using different query formats
+    for (const locationName of locationQueries) {
+      const locationResponse = await axios.get('https://api.serpstack.com/locations', {
+        params: {
+          access_key: process.env.SERPSTACK_API_KEY,
+          query: locationName,
+        },
+      });
 
-    const locations = locationResponse.data;
+      const locations = locationResponse.data;
 
-    if (!Array.isArray(locations) || locations.length === 0) {
-      console.error('Location not found:', locationName);
-      return res.status(400).json({ message: 'Invalid location specified.' });
+      if (Array.isArray(locations) && locations.length > 0) {
+        // Find the location matching the provided state
+        const matchingLocation = locations.find((loc) =>
+          loc.name.toLowerCase().includes(city.toLowerCase()) &&
+          loc.name.toLowerCase().includes(state.toLowerCase())
+        );
+
+        if (matchingLocation) {
+          locationId = matchingLocation.loc_id;
+          console.log(`Location ID found for "${locationName}": ${locationId}`);
+          break;
+        }
+      }
     }
 
-    // Assuming the first result is the most relevant
-    const locationId = locations[0].loc_id;
-
     if (!locationId) {
-      console.error('Location ID not found for:', locationName);
-      return res.status(400).json({ message: 'Invalid location specified.' });
+      console.error('Location ID not found for:', `${city}, ${state}`);
+      return res.status(400).json({
+        message: `Invalid location specified. Please check the city and state names.`,
+      });
     }
 
     // Use the loc_id in the search request
@@ -124,8 +140,10 @@ export default async function handler(req, res) {
             page_description: pageDescription,
             url: typeof item.url === 'string' ? item.url : '',
             domain: domain,
-            cached_url: typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
-            related_pages_url: typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
+            cached_url:
+              typeof item.cached_page_url === 'string' ? item.cached_page_url : '',
+            related_pages_url:
+              typeof item.related_pages_url === 'string' ? item.related_pages_url : '',
             rich_snippets: item.rich_snippet || {},
           };
         })
@@ -146,6 +164,8 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('API Error:', error.response?.data || error.message);
-    res.status(500).json({ message: 'API limit reached or an error occurred.' });
+    res.status(500).json({
+      message: 'An error occurred while processing your request.',
+    });
   }
 }
