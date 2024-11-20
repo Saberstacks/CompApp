@@ -24,16 +24,22 @@ export default async function handler(req, res) {
 
     // Map Pack Results
     const mapPackResults = (data.local_results || []).map((item) => {
-      let business_type = '';
+      let business_type = 'N/A';
       let additional_info = [];
 
+      // Safely handle item.extensions
       if (Array.isArray(item.extensions)) {
         business_type = item.extensions[0] || 'N/A';
         additional_info = item.extensions.slice(1);
       } else if (typeof item.extensions === 'string') {
         business_type = item.extensions || 'N/A';
-        additional_info = [];
+      } else if (item.extensions && typeof item.extensions === 'object') {
+        // Convert object values to array
+        const extensionsArray = Object.values(item.extensions);
+        business_type = extensionsArray[0] || 'N/A';
+        additional_info = extensionsArray.slice(1);
       } else {
+        // item.extensions is undefined or null
         business_type = 'N/A';
         additional_info = [];
       }
@@ -54,7 +60,7 @@ export default async function handler(req, res) {
     const organicResults = (data.organic_results || [])
       .slice(0, 5)
       .map((item) => {
-        let domain = '';
+        let domain = 'N/A';
         if (item.displayed_url) {
           domain = item.displayed_url;
         } else if (item.url) {
@@ -63,8 +69,6 @@ export default async function handler(req, res) {
           } catch (error) {
             domain = 'N/A';
           }
-        } else {
-          domain = 'N/A';
         }
 
         return {
