@@ -28,10 +28,14 @@ export default async function handler(req, res) {
       let additional_info = [];
 
       if (Array.isArray(item.extensions)) {
-        business_type = item.extensions[0];
+        business_type = item.extensions[0] || 'N/A';
         additional_info = item.extensions.slice(1);
       } else if (typeof item.extensions === 'string') {
-        business_type = item.extensions;
+        business_type = item.extensions || 'N/A';
+        additional_info = [];
+      } else {
+        business_type = 'N/A';
+        additional_info = [];
       }
 
       return {
@@ -40,9 +44,9 @@ export default async function handler(req, res) {
         address: item.address || 'N/A',
         average_rating: item.rating || 'N/A',
         total_reviews: item.reviews || 'N/A',
-        business_type: business_type || 'N/A',
+        business_type: business_type,
         coordinates: item.coordinates || {},
-        additional_info,
+        additional_info: additional_info,
       };
     });
 
