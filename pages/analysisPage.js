@@ -1,4 +1,4 @@
-// Location: pages/analysisPage.js
+// Location: pages/analysis.js
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
@@ -27,7 +27,7 @@ export default function AnalysisPage() {
   const analyzeUrl = async (targetUrl, setData, setLoading) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/analyzePage', { url: targetUrl });
+      const response = await axios.post('/api/analyze', { url: targetUrl });
       setData(response.data);
     } catch (error) {
       console.error('Analysis Error:', error.response?.data || error.message);
