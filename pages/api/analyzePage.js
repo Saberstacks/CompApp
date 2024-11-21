@@ -1,4 +1,4 @@
-// Location: pages/api/analyzePage.js
+// Location: pages/api/analyze.js
 
 import axios from 'axios';
 import cheerio from 'cheerio';
@@ -16,14 +16,20 @@ export default async function handler(req, res) {
   }
 
   // Validate and format the URL
-  let formattedUrl = url;
-  if (!/^https?:\/\//i.test(url)) {
-    formattedUrl = `http://${url}`;
+  let formattedUrl = url.trim();
+  if (!/^https?:\/\//i.test(formattedUrl)) {
+    formattedUrl = 'https://' + formattedUrl;
   }
 
   try {
     // Fetch the HTML content
-    const response = await axios.get(formattedUrl, { maxRedirects: 5 });
+    const response = await axios.get(formattedUrl, {
+      maxRedirects: 5,
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
+
     const html = response.data;
     const $ = cheerio.load(html);
 
@@ -57,7 +63,7 @@ export default async function handler(req, res) {
 
     // Headings
     const headings = [];
-    $('h1, h2, h3, h4, h5, h6').each((i, elem) => {
+    $('h1, h2, h3').each((i, elem) => {
       headings.push({
         tag: $(elem).get(0).tagName.toUpperCase(),
         text: $(elem).text().trim(),
@@ -69,7 +75,7 @@ export default async function handler(req, res) {
     const baseDomain = new URL(formattedUrl).origin;
     $('a[href]').each((i, elem) => {
       const link = $(elem).attr('href');
-      if (link.startsWith('/') || link.startsWith(baseDomain)) {
+      if (link && (link.startsWith('/') || link.startsWith(baseDomain))) {
         internalLinks.add(link);
       }
     });
@@ -117,6 +123,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Analysis Error:', error.message);
-    res.status(500).json({ message: `Error analyzing the URL: ${error.message}` });
+    res.status(500).json({ message: 'Error analyzing the URL. Please ensure the URL is correct and accessible.' });
   }
 }
