@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
-import ResultRow from '../components/ResultRow';
+import Results from '../components/Results';
 
 export default function Home() {
   const [keyword, setKeyword] = useState('');
@@ -39,7 +39,7 @@ export default function Home() {
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="e.g., Window Cleaners in Cincinnati"
+            placeholder="e.g., Plumbers in Miami"
             required
           />
         </label>
@@ -48,29 +48,7 @@ export default function Home() {
 
       {loading && <p>Loading...</p>}
 
-      {results && (
-        <div>
-          <h2>Search Results for "{keyword}"</h2>
-
-          <h3>Map Pack Results</h3>
-          {results.mapPackResults.length > 0 ? (
-            results.mapPackResults.map((item, index) => (
-              <ResultRow key={`map-${index}`} item={item} type="map" />
-            ))
-          ) : (
-            <p>No Map Pack Results found.</p>
-          )}
-
-          <h3>Organic Results</h3>
-          {results.organicResults.length > 0 ? (
-            results.organicResults.map((item, index) => (
-              <ResultRow key={`organic-${index}`} item={item} type="organic" />
-            ))
-          ) : (
-            <p>No Organic Results found.</p>
-          )}
-        </div>
-      )}
+      {results && <Results keyword={keyword} results={results} />}
     </div>
   );
 }
