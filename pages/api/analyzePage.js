@@ -4,23 +4,34 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 
 export default async function handler(req, res) {
+  // Ensure the request method is POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
+
   const { url } = req.body;
 
   if (!url) {
     return res.status(400).json({ message: 'URL is required.' });
   }
 
+  // Validate and format the URL
+  let formattedUrl = url;
+  if (!/^https?:\/\//i.test(url)) {
+    formattedUrl = `http://${url}`;
+  }
+
   try {
     // Fetch the HTML content
-    const response = await axios.get(url);
+    const response = await axios.get(formattedUrl, { maxRedirects: 5 });
     const html = response.data;
     const $ = cheerio.load(html);
 
     // SSL Check
-    const ssl = url.startsWith('https://');
+    const ssl = formattedUrl.startsWith('https://');
 
     // robots.txt Check
-    const robotsTxtUrl = new URL('/robots.txt', url).href;
+    const robotsTxtUrl = new URL('/robots.txt', formattedUrl).href;
     let robotsTxt = false;
     try {
       await axios.get(robotsTxtUrl);
@@ -30,7 +41,7 @@ export default async function handler(req, res) {
     }
 
     // Sitemap Check
-    const sitemapUrl = new URL('/sitemap.xml', url).href;
+    const sitemapUrl = new URL('/sitemap.xml', formattedUrl).href;
     let sitemap = false;
     try {
       await axios.get(sitemapUrl);
@@ -55,7 +66,7 @@ export default async function handler(req, res) {
 
     // Internal Links
     const internalLinks = new Set();
-    const baseDomain = new URL(url).origin;
+    const baseDomain = new URL(formattedUrl).origin;
     $('a[href]').each((i, elem) => {
       const link = $(elem).attr('href');
       if (link.startsWith('/') || link.startsWith(baseDomain)) {
@@ -73,7 +84,11 @@ export default async function handler(req, res) {
     });
 
     // Top Keywords
-    const stopWords = ['and', 'the', 'of', 'in', 'to', 'a', 'is', 'for', 'on', 'that', 'with', 'as', 'are', 'it', 'at', 'from', 'by'];
+    const stopWords = [
+      'and', 'the', 'of', 'in', 'to', 'a', 'is', 'for', 'on', 'that',
+      'with', 'as', 'are', 'it', 'at', 'from', 'by', 'this', 'be', 'or', 'an',
+      'your', 'you', 'we', 'our', 'us',
+    ];
     const text = $('body').text().replace(/\s+/g, ' ').toLowerCase();
     const words = text.match(/\b[a-z]{3,}\b/g) || [];
     const wordCounts = {};
@@ -102,6 +117,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Analysis Error:', error.message);
-    res.status(500).json({ message: 'Error analyzing the URL.' });
+    res.status(500).json({ message: `Error analyzing the URL: ${error.message}` });
   }
 }
